@@ -202,13 +202,13 @@ if (isset($_GET['search']) && isset($_GET['startDate']) && isset($_GET['endDate'
         </div>
         <div style="width: 15%; margin-right: 10px;">
             <label for="searchType" style="font-weight: bold; margin-bottom: 5px;">Tipo de Registro:</label>
-<select id="searchType" name="searchType" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc;">
-    <option value="all" <?php echo ($searchType == 'all') ? 'selected' : ''; ?>>Todos</option>
-    <option value="titulos" <?php echo ($searchType == 'titulos') ? 'selected' : ''; ?>>Títulos</option>
-    <option value="parcelas" <?php echo ($searchType == 'parcelas') ? 'selected' : ''; ?>>Parcelas</option>
-    <option value="carne" <?php echo ($searchType == 'carne') ? 'selected' : ''; ?>>Carne</option>
-    <option value="cancelou" <?php echo ($searchType == 'cancelou') ? 'selected' : ''; ?>>Cancelou</option>
-</select>
+        <select id="searchType" name="searchType" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc;">
+            <option value="all" <?php echo ($searchType == 'all') ? 'selected' : ''; ?>>Todos</option>
+            <option value="titulos" <?php echo ($searchType == 'titulos') ? 'selected' : ''; ?>>Títulos</option>
+            <option value="parcelas" <?php echo ($searchType == 'parcelas') ? 'selected' : ''; ?>>Parcelas</option>
+            <option value="carne" <?php echo ($searchType == 'carne') ? 'selected' : ''; ?>>Carne</option>
+            <option value="cancelou" <?php echo ($searchType == 'cancelou') ? 'selected' : ''; ?>>Cancelou</option>
+        </select>
 
         </div>
         <div style="flex: 1;">
@@ -230,133 +230,6 @@ if (isset($_GET['search']) && isset($_GET['startDate']) && isset($_GET['endDate'
     }
 </script>
 
-
-<?php
-// Consulta SQL para obter a quantidade de registros que contém 'deletou parcela' ou 'deletou o carne' pelo motivo em sis_ativ
-$countQuery1 = "SELECT COUNT(*) AS client_count FROM sis_ativ WHERE tipo = 'central'";
-
-// Adiciona a filtragem por tipo de registro se fornecido
-if ($searchType !== 'all') {
-    switch ($searchType) {
-        case 'titulos':
-            $countQuery1 .= " AND registro LIKE '%deletou título%'";
-            break;
-        case 'parcelas':
-            $countQuery1 .= " AND registro LIKE '%deletou parcela%'";
-            break;
-        case 'carne':
-            $countQuery1 .= " AND registro LIKE '%deletou o carne%'";
-            break;
-        case 'cancelou':
-            $countQuery1 .= " AND registro LIKE '%cancelou título%'";
-            break;
-        default:
-            // Se nenhum tipo específico for selecionado, conte todos os registros
-            break;
-    }
-} else {
-$countQuery1 .= " AND (((registro LIKE '%deletou parcela%' OR registro LIKE '%deletou o carne%' OR registro LIKE '%cancelou título%') OR (registro LIKE '%deletou título%' AND registro LIKE '%pelo motivo:%'))";
-}
-
-// Adiciona a filtragem por datas se forem fornecidas
-if (!empty($_GET['startDate']) && !empty($_GET['endDate'])) {
-    $startDate = mysqli_real_escape_string($link, $_GET['startDate']);
-    $endDate = mysqli_real_escape_string($link, $_GET['endDate']);
-    $countQuery1 .= " AND DATE(data) BETWEEN '$startDate' AND '$endDate'";
-}
-
-// Adiciona a filtragem por termo de busca se fornecido
-if (!empty($_GET['search'])) {
-    $searchTerm = mysqli_real_escape_string($link, $_GET['search']);
-    $countQuery1 .= " AND (login LIKE '%$searchTerm%' OR registro LIKE '%$searchTerm%')";
-}
-
-if ($searchType === 'all') {
-    $countQuery1 .= ")";
-}
-
-$stmt1 = mysqli_prepare($link, $countQuery1);
-mysqli_stmt_execute($stmt1);
-$countResult1 = mysqli_stmt_get_result($stmt1);
-
-// Combinação dos resultados
-if ($countResult1) {
-    $countRow1 = mysqli_fetch_assoc($countResult1);
-    $clientCount1 = $countRow1['client_count'];
-} else {
-    $clientCount1 = 0;
-}
-
-// Consulta SQL para obter a quantidade de registros que contém 'deletou parcela' ou 'deletou o carne' pelo motivo em sis_logs
-$countQuery2 = "SELECT COUNT(*) AS client_count FROM sis_logs WHERE tipo = 'central'";
-
-// Adiciona a filtragem por tipo de registro se fornecido
-if ($searchType !== 'all') {
-    switch ($searchType) {
-        case 'titulos':
-            $countQuery2 .= " AND registro LIKE '%deletou título%'";
-            break;
-        case 'parcelas':
-            $countQuery2 .= " AND registro LIKE '%deletou parcela%'";
-            break;
-        case 'carne':
-            $countQuery2 .= " AND registro LIKE '%deletou o carne%'";
-            break;
-        case 'cancelou':
-            $countQuery2 .= " AND registro LIKE '%cancelou%'";
-            break;
-        default:
-            // Se nenhum tipo específico for selecionado, conte todos os registros
-            break;
-    }
-} else {
-    $countQuery2 .= " AND (((registro LIKE '%deletou parcela%' OR registro LIKE '%deletou o carne%' OR registro LIKE '%cancelou título%' OR registro LIKE '%cancelou%') OR (registro LIKE '%deletou título%' AND registro LIKE '%pelo motivo:%'))";
-}
-
-
-
-// Adiciona a filtragem por datas se forem fornecidas
-if (!empty($_GET['startDate']) && !empty($_GET['endDate'])) {
-    $startDate = mysqli_real_escape_string($link, $_GET['startDate']);
-    $endDate = mysqli_real_escape_string($link, $_GET['endDate']);
-
-    // Convertendo as datas para o formato MySQL
-    $startDateMySQL = date('Y-m-d', strtotime($startDate));
-    $endDateMySQL = date('Y-m-d', strtotime($endDate));
-
-    $countQuery2 .= " AND DATE(STR_TO_DATE(data, '%d/%m/%Y %H:%i:%s')) BETWEEN '$startDateMySQL' AND '$endDateMySQL'";
-}
-
-// Adiciona a filtragem por termo de busca se fornecido
-if (!empty($_GET['search'])) {
-    $searchTerm = mysqli_real_escape_string($link, $_GET['search']);
-    $countQuery2 .= " AND (login LIKE '%$searchTerm%' OR registro LIKE '%$searchTerm%')";
-}
-
-if ($searchType === 'all') {
-    $countQuery2 .= ")";
-}
-
-$stmt2 = mysqli_prepare($link, $countQuery2);
-mysqli_stmt_execute($stmt2);
-$countResult2 = mysqli_stmt_get_result($stmt2);
-
-// Combinação dos resultados
-if ($countResult2) {
-    $countRow2 = mysqli_fetch_assoc($countResult2);
-    $clientCount2 = $countRow2['client_count'];
-} else {
-    $clientCount2 = 0;
-}
-
-// Combinação e exibição dos resultados
-$totalClientCount = $clientCount1 + $clientCount2;
-echo "<div class='client-count-container'><p class='client-count blue'>Total de Boletos Excluídos: $totalClientCount</p></div>";
-
-?>
-
-
-
     <!-- Tabela: Registros, Data, Tipo e Login -->
     <div class="table-container">
         <table>
@@ -373,6 +246,7 @@ echo "<div class='client-count-container'><p class='client-count blue'>Total de 
             </thead>
             <tbody>
 <?php
+// Consulta SQL para obter os registros, data, tipo, login e valor do boleto
 $query = "(SELECT DISTINCT
             central.login, 
             central.data, 
@@ -392,7 +266,7 @@ $query = "(SELECT DISTINCT
                     OR (central.registro LIKE '%cancelou título%') 
                     OR (central.registro LIKE '%deletou título%' AND central.registro LIKE '%pelo motivo:%')
                   ) 
-                  AND (central.login LIKE '%$search%' OR central.registro LIKE '%$search%')
+                  AND (admin.login LIKE '%$search%' OR central.login LIKE '%$search%' OR central.registro LIKE '%$search%')
                 ";
 
 
@@ -455,7 +329,7 @@ $query .= " UNION DISTINCT
                     OR (central.registro LIKE '%deletou título%' AND central.registro LIKE '%pelo motivo:%')
                     OR (central.registro LIKE '%cancelou título%')
                   ) 
-                  AND (central.login LIKE '%$search%' OR central.registro LIKE '%$search%')
+                  AND (admin.login LIKE '%$search%' OR central.login LIKE '%$search%' OR central.registro LIKE '%$search%')
                 ";
 
 
@@ -487,10 +361,12 @@ if (isset($_GET['searchType']) && in_array($_GET['searchType'], ['titulos', 'par
 
     $query .= "))";
 } else {
-    // A tabela sis_ativ não existe, então você pode simplesmente não adicionar a parte da consulta relacionada a ela
+    // A tabela sis_ativ não existe, nesta Versão V23.xx so na V24.xx
    //echo "<div class='client-count-container'><p class='client-count blue'>A tabela sis_ativ não existe nesta versão.</p></div>";
  }
 
+// Contador de Total de Boletos Excluídos
+$total_boletos_excluidos = 0;
 
 // Ordena os resultados pela data mais recente
 $query .= " ORDER BY order_date DESC";
@@ -528,6 +404,8 @@ if ($result) {
             if ($valorResult && mysqli_num_rows($valorResult) > 0) {
                 $valorRow = mysqli_fetch_assoc($valorResult);
                 $valor = $valorRow['valor'];
+                // Incrementa o contador de Total de Boletos Excluídos
+                //$total_boletos_excluidos++;
             }
         }
 
@@ -539,6 +417,8 @@ if ($result) {
             if ($valorCarneResult && mysqli_num_rows($valorCarneResult) > 0) {
                 $valorCarneRow = mysqli_fetch_assoc($valorCarneResult);
                 $valor_carne = $valorCarneRow['valor'];
+                // Incrementa o contador de Total de Boletos Excluídos
+                //$total_boletos_excluidos++;
             }
         }
 
@@ -554,23 +434,24 @@ if ($result) {
 
         // Registro
         echo "<td class='resultado-cell' style='max-width: 150px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'><a href='#' style='text-decoration: none; cursor: default; color: #f35812;' onmouseover='showFullText(this)' onmouseout='hideFullText(this)'>" . $row['registro'] . "</a></td>";
-
-       // Valor
-echo "<td class='resultado-cell' style='width: 125px;'>"; // Ajustando a largura para 130 pixels
-echo $valor !== '' ? "<img src='img/icon_boleto.png' alt='Icon' style='width: 20px; height: 20px; float: left; margin-right: 5px;'>" . "<a href='#' style='text-decoration: none; cursor: default; color: #1c0dea;'>R$ $valor</a>" : '';
-echo $valor !== '' && $valor_carne !== '' ? "<br>" : '';
-echo $valor_carne !== '' ? "<img src='img/icon_boleto.png' alt='Icon' style='width: 20px; height: 20px; float: left; margin-right: 5px;'>" . "<a href='#' style='text-decoration: none; cursor: default; color: #1c0dea;'>R$ $valor_carne</a>" : '';
-echo "</td>";
-
-
+        
+		// Incrementa o contador de Total de Boletos Excluídos
+        $total_boletos_excluidos++;
+        
+		// Valor
+        echo "<td class='resultado-cell' style='width: 125px;'>"; // Ajustando a largura para 130 pixels
+        echo $valor !== '' ? "<img src='img/icon_boleto.png' alt='Icon' style='width: 20px; height: 20px; float: left; margin-right: 5px;'>" . "<a href='#' style='text-decoration: none; cursor: default; color: #1c0dea;'>R$ $valor</a>" : '';
+        echo $valor !== '' && $valor_carne !== '' ? "<br>" : '';
+        echo $valor_carne !== '' ? "<img src='img/icon_boleto.png' alt='Icon' style='width: 20px; height: 20px; float: left; margin-right: 5px;'>" . "<a href='#' style='text-decoration: none; cursor: default; color: #1c0dea;'>R$ $valor_carne</a>" : '';
+        echo "</td>";
 
         // ID
         echo "<td class='resultado-cell' style='position: relative;'><a href=\"javascript:void(0);\" onclick=\"searchById('".$id."')\">" . "<img src='img/digital.png' alt='Ícone' style='width: 20px; height: 20px; position: absolute; left: 0; top: 50%; transform: translateY(-50%);'>" . "<span class='login-clickable' style='color: #007ff7; margin-left: 25px;'>" . $id . "</span>" . "</a></td>";
         echo "</tr>";
     }
-}
+}       // Total de Boletos Excluídos
+        echo "<div class='client-count-container'><p class='client-count blue'>Total de Boletos Excluídos: $total_boletos_excluidos</p></div>";
 ?>
-
 
             </tbody>
         </table>
