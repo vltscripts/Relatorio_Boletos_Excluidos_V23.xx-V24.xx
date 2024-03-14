@@ -438,7 +438,14 @@ if ($result) {
         echo "<td class='resultado-cell'><a href=\"javascript:void(0);\" onclick=\"searchByTipoCob('".$row['login']."')\">" . "<img src='img/icon_cliente.png' alt='Cliente Icon' style='width: 20px; height: 20px; float: left; margin-right: 5px;'>" . "<span class='login-clickable'>" . $row['login'] . "</span>" . "</a></td>";
 
         // Data Exclusão
-        echo "<td class='resultado-cell'>" . ($row['order_date'] ? "<a style='text-align: center; text-decoration: none; cursor: default; color: green;'>" . date('m-d-Y H:i:s', strtotime($row['order_date'])) : '') . "</td>";
+        // Primeiro, convertemos a data no formato "d/m/Y H:i:s" para um formato aceito pelo strtotime() (Y-m-d H:i:s).
+        $order_date_timestamp = strtotime(str_replace('/', '-', $row['order_date']));
+
+        // Agora, formatamos a data conforme necessário.
+        $order_date_formatted = $order_date_timestamp ? date('d/m/Y H:i:s', $order_date_timestamp) : '';
+
+        // Finalmente, exibimos a data na célula da tabela.
+        echo "<td class='resultado-cell'>" . ($row['order_date'] ? "<a style='text-align: center; text-decoration: none; cursor: default; color: green;'>" . $order_date_formatted . "</a>" : '') . "</td>";
 
         // Usuário
         echo "<td class='resultado-cell'><a href=\"javascript:void(0);\" onclick=\"searchByTipoCob('".($row['admin_login'] ? $row['admin_login'] : $row['login'])."')\">" . "<span class='login-clickable'>" . ($row['admin_login'] ? $row['admin_login'] : $row['login']) . "</span>" . "</a></td>";
