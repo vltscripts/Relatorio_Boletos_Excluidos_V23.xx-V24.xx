@@ -230,6 +230,25 @@ if (isset($_SESSION['MM_Usuario'])) {
         </div>
     </div>
 </form>
+<script>
+    $(document).ready(function() {
+        $('.login-clickable').click(function() {
+            var login = $(this).text();
+            $('#search').val(login); // Preenche o campo de busca com o login clicado
+            $('#searchForm').submit(); // Submete o formulário de pesquisa
+        });
+    });
+</script>
+<script>
+function showFullText(element) {
+  var text = element.textContent || element.innerText;
+  element.setAttribute('title', text);
+}
+
+function hideFullText(element) {
+  element.removeAttribute('title');
+}
+</script>
 
 <script type="text/javascript">
     function clearSearch() {
@@ -485,25 +504,7 @@ if ($result) {
     <script src="../../menu.js.php"></script>
     <?php include('../../rodape.php'); ?>
 </body>
-<script>
-    $(document).ready(function() {
-        $('.login-clickable').click(function() {
-            var login = $(this).text();
-            $('#search').val(login); // Preenche o campo de busca com o login clicado
-            $('#searchForm').submit(); // Submete o formulário de pesquisa
-        });
-    });
-</script>
-<script>
-function showFullText(element) {
-  var text = element.textContent || element.innerText;
-  element.setAttribute('title', text);
-}
 
-function hideFullText(element) {
-  element.removeAttribute('title');
-}
-</script>
 
 
 </html>
